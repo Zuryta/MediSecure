@@ -1,0 +1,701 @@
+{% extends "base.html" %}
+{% block topbar %}{% endblock %}
+
+{% block outer_wrap %}
+
+<!-- ══════════════════════════════════════════════
+     NAVBAR (reemplaza topbar en home)
+════════════════════════════════════════════════ -->
+<nav class="home-nav">
+    <div class="home-nav-inner">
+        <a href="/" class="home-brand">
+            <div class="home-cross"></div>
+            <span>Medi<em>Secure</em></span>
+        </a>
+        <div class="home-nav-links">
+            <a href="#noticias">Noticias</a>
+            <a href="#servicios">Servicios</a>
+            <a href="#farmacias">Farmacias</a>
+        </div>
+        <div class="home-nav-actions">
+            {% if current_user.is_authenticated %}
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <a href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:var(--teal);
+                             display:flex;align-items:center;justify-content:center;
+                             font-size:.78rem;font-weight:800;color:white;
+                             border:2px solid rgba(168,213,213,.5);text-transform:uppercase;">
+                            {{ current_user.username[0] }}
+                        </div>
+                        <span style="color:white;font-weight:600;font-size:.85rem;">{{ current_user.username }}</span>
+                    </a>
+                </div>
+                <a href="/dashboard" class="btn-nav-outline">Mi Panel</a>
+                <a href="/logout" class="btn-nav-ghost">Salir</a>
+            {% else %}
+                <a href="/login" class="btn-nav-outline">Iniciar sesión</a>
+                <a href="/login?next=/dashboard" class="btn-nav-solid">Agendar consulta</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════ -->
+<section class="hero">
+    <div class="hero-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    <div class="hero-inner">
+        <div class="hero-text">
+            <span class="hero-badge">🏥 Sistema Hospitalario Seguro</span>
+            <h1>Tu salud, nuestra<br><em>prioridad</em></h1>
+            <p>Agenda tu consulta médica en línea de forma rápida y segura. Accede a tus recetas, historial clínico y conecta con médicos certificados.</p>
+            <div class="hero-btns">
+                {% if current_user.is_authenticated %}
+                    <a href="/dashboard" class="hero-btn-primary">Ir a mi panel →</a>
+                {% else %}
+                    <a href="/login?next=/dashboard" class="hero-btn-primary">Agendar consulta →</a>
+                    <a href="/registro" class="hero-btn-secondary">Crear cuenta gratis</a>
+                {% endif %}
+            </div>
+            <div class="hero-trust">
+                <div class="trust-item">✓ Datos cifrados AES-128</div>
+                <div class="trust-item">✓ Autenticación MFA</div>
+                <div class="trust-item">✓ Médicos certificados</div>
+            </div>
+        </div>
+        <div class="hero-card-float">
+            <div class="float-card">
+                <div class="float-card-icon">📅</div>
+                <div>
+                    <div class="float-card-title">Consulta fácil</div>
+                    <div class="float-card-sub">Agenda en minutos</div>
+                </div>
+            </div>
+            <div class="float-card fc-teal">
+                <div class="float-card-icon">🔒</div>
+                <div>
+                    <div class="float-card-title">100% Seguro</div>
+                    <div class="float-card-sub">Cifrado extremo a extremo</div>
+                </div>
+            </div>
+            <div class="float-card fc-navy">
+                <div class="float-card-icon">💊</div>
+                <div>
+                    <div class="float-card-title">Recetas digitales</div>
+                    <div class="float-card-sub">Disponibles al instante</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     SERVICIOS
+════════════════════════════════════════════════ -->
+<section class="section" id="servicios">
+    <div class="section-inner">
+        <div class="section-header">
+            <span class="section-label">¿Qué ofrecemos?</span>
+            <h2>Servicios médicos digitales</h2>
+            <p>Todo lo que necesitas para tu salud, en un solo lugar seguro.</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="svc-icon" style="background:#e3f3f3; color:#0c7b7b;">📋</div>
+                <h3>Consulta médica</h3>
+                <p>Agenda citas con médicos generales y especialistas. Comparte tus síntomas y recibe diagnóstico personalizado.</p>
+            </div>
+            <div class="service-card">
+                <div class="svc-icon" style="background:#e8f5e9; color:#16a34a;">💊</div>
+                <h3>Recetas digitales</h3>
+                <p>Tus prescripciones médicas almacenadas de forma segura con cifrado de extremo a extremo. Imprímelas cuando quieras.</p>
+            </div>
+            <div class="service-card">
+                <div class="svc-icon" style="background:#fff3e0; color:#b45309;">📁</div>
+                <h3>Historial clínico</h3>
+                <p>Accede a todo tu historial médico en cualquier momento. Toda tu información en un solo lugar.</p>
+            </div>
+            <div class="service-card">
+                <div class="svc-icon" style="background:#fce4ec; color:#c0392b;">🗺️</div>
+                <h3>Farmacias cercanas</h3>
+                <p>Encuentra las farmacias y farmacias con consultorio más cercanas a tu ubicación en tiempo real.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     NOTICIAS DE SALUD
+════════════════════════════════════════════════ -->
+<section class="section section-gray" id="noticias">
+    <div class="section-inner">
+        <div class="section-header">
+            <span class="section-label">Al día en salud</span>
+            <h2>Noticias y consejos médicos</h2>
+            <p>Información confiable para cuidar mejor tu bienestar.</p>
+        </div>
+        <div class="news-grid">
+            <article class="news-card news-featured">
+                <div class="news-img" style="background: linear-gradient(135deg, #0d2b45, #0c7b7b);">
+                    <span style="font-size:3rem;">🧬</span>
+                </div>
+                <div class="news-body">
+                    <span class="news-cat">Investigación</span>
+                    <h3>Avances en medicina preventiva para 2025</h3>
+                    <p>Nuevos estudios muestran que la detección temprana con inteligencia artificial puede reducir hasta un 40% los casos de enfermedades crónicas en etapas avanzadas.</p>
+                    <div class="news-footer">
+                        <span>🕐 Hace 2 días</span>
+                        <span>📖 5 min lectura</span>
+                    </div>
+                </div>
+            </article>
+            <article class="news-card">
+                <div class="news-img-sm" style="background: linear-gradient(135deg, #16a34a, #0c7b7b);">
+                    <span style="font-size:2rem;">🥦</span>
+                </div>
+                <div class="news-body-sm">
+                    <span class="news-cat cat-green">Nutrición</span>
+                    <h3>Alimentación y sistema inmune: claves para el invierno</h3>
+                    <p>Expertos recomiendan reforzar la dieta con alimentos ricos en zinc, vitamina C y D durante los meses fríos.</p>
+                    <div class="news-footer"><span>🕐 Hace 4 días</span></div>
+                </div>
+            </article>
+            <article class="news-card">
+                <div class="news-img-sm" style="background: linear-gradient(135deg, #b45309, #d97706);">
+                    <span style="font-size:2rem;">🧠</span>
+                </div>
+                <div class="news-body-sm">
+                    <span class="news-cat cat-amber">Salud Mental</span>
+                    <h3>Estrategias para el manejo del estrés laboral</h3>
+                    <p>El burnout afecta al 42% de los trabajadores. Especialistas comparten técnicas prácticas para recuperar el equilibrio emocional.</p>
+                    <div class="news-footer"><span>🕐 Hace 1 semana</span></div>
+                </div>
+            </article>
+            <article class="news-card">
+                <div class="news-img-sm" style="background: linear-gradient(135deg, #c0392b, #e74c3c);">
+                    <span style="font-size:2rem;">❤️</span>
+                </div>
+                <div class="news-body-sm">
+                    <span class="news-cat cat-red">Cardiología</span>
+                    <h3>10 hábitos para proteger tu corazón desde los 30</h3>
+                    <p>La Asociación Americana del Corazón actualiza sus guías: caminar 30 minutos diarios reduce en un 35% el riesgo cardiovascular.</p>
+                    <div class="news-footer"><span>🕐 Hace 1 semana</span></div>
+                </div>
+            </article>
+            <article class="news-card">
+                <div class="news-img-sm" style="background: linear-gradient(135deg, #6d28d9, #8b5cf6);">
+                    <span style="font-size:2rem;">💉</span>
+                </div>
+                <div class="news-body-sm">
+                    <span class="news-cat cat-purple">Vacunación</span>
+                    <h3>Calendario de vacunas para adultos en 2025</h3>
+                    <p>Las autoridades sanitarias actualizan el esquema de vacunación para adultos mayores de 60 años, incluyendo nuevas dosis de refuerzo.</p>
+                    <div class="news-footer"><span>🕐 Hace 2 semanas</span></div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     MAPA DE FARMACIAS
+════════════════════════════════════════════════ -->
+<section class="section" id="farmacias">
+    <div class="section-inner">
+        <div class="section-header">
+            <span class="section-label">Ubícalas fácil</span>
+            <h2>Farmacias y consultorios cercanos</h2>
+            <p>Localiza la farmacia o farmacia con consultorio más próxima a tu ubicación actual.</p>
+        </div>
+        <div class="map-container">
+            <div class="map-sidebar">
+                <div class="map-legend">
+                    <h4>Filtros de búsqueda</h4>
+                    <label class="map-filter active" id="filter-all" onclick="filtrarMapa('all')">
+                        <span class="dot dot-blue"></span> Todas
+                    </label>
+                    <label class="map-filter" id="filter-farmacia" onclick="filtrarMapa('farmacia')">
+                        <span class="dot dot-red"></span> Farmacias
+                    </label>
+                    <label class="map-filter" id="filter-consultorio" onclick="filtrarMapa('consultorio')">
+                        <span class="dot dot-green"></span> Con consultorio
+                    </label>
+                </div>
+                <hr style="border-color:#e2e8f0; margin:16px 0;">
+                <button onclick="localizarme()" class="btn-localize">
+                    📍 Usar mi ubicación
+                </button>
+                <p style="font-size:.75rem; color:#94a3b8; margin-top:8px; text-align:center;">
+                    El mapa se centrará en tu posición actual
+                </p>
+                <div id="map-status" style="margin-top:12px; font-size:.8rem; color:#64748b; text-align:center;"></div>
+            </div>
+            <div id="mapa" class="map-area"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     CTA FINAL
+════════════════════════════════════════════════ -->
+<section class="cta-section">
+    <div class="cta-inner">
+        <h2>¿Listo para cuidar tu salud?</h2>
+        <p>Únete a MediSecure y gestiona tu salud de forma inteligente y segura.</p>
+        <div class="hero-btns" style="justify-content:center;">
+            {% if current_user.is_authenticated %}
+                <a href="/dashboard" class="hero-btn-primary">Ir a mi panel →</a>
+            {% else %}
+                <a href="/registro" class="hero-btn-primary">Crear cuenta gratis →</a>
+                <a href="/login" class="hero-btn-secondary" style="color:white; border-color:rgba(255,255,255,.5);">Ya tengo cuenta</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════ -->
+<footer class="home-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <div class="home-cross" style="width:28px;height:28px;"></div>
+            <span style="font-family:'Lora',serif; font-size:1.1rem; color:white;">Medi<em style="color:#a8d5d5;">Secure</em></span>
+        </div>
+        <p style="font-size:.78rem;">🔒 MediSecure v2.0 · Conexión cifrada TLS · Todos los eventos son auditados</p>
+        <p style="font-size:.72rem; color:#64748b; margin-top:4px;">Sistema de Gestión Hospitalaria © 2025</p>
+    </div>
+</footer>
+
+<!-- Leaflet CSS & JS (OpenStreetMap — gratuito, sin API key) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<style>
+/* ── GOOGLE FONTS para home ─────────── */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;1,500&display=swap');
+
+/* ── NAVBAR ──────────────────────────── */
+.home-nav {
+    background: var(--navy);
+    position: sticky; top: 0; z-index: 200;
+    box-shadow: 0 2px 20px rgba(0,0,0,.2);
+}
+.home-nav-inner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 0 32px; height: 62px;
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 20px;
+}
+.home-brand {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; flex-shrink: 0;
+}
+.home-brand span {
+    font-family: 'Lora', serif; font-size: 1.2rem;
+    color: white; font-style: normal;
+}
+.home-brand em { color: #a8d5d5; font-style: normal; }
+.home-cross {
+    width: 28px; height: 28px; position: relative; flex-shrink: 0;
+}
+.home-cross::before, .home-cross::after {
+    content: ''; position: absolute;
+    background: #a8d5d5; border-radius: 2px;
+}
+.home-cross::before { width: 7px; height: 28px; left: 10px; top: 0; }
+.home-cross::after  { width: 28px; height: 7px;  left: 0; top: 10px; }
+.home-nav-links { display: flex; gap: 28px; }
+.home-nav-links a {
+    color: #94a3b8; font-size: .88rem; font-weight: 500;
+    text-decoration: none; transition: color .18s;
+}
+.home-nav-links a:hover { color: white; }
+.home-nav-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.btn-nav-outline {
+    padding: 7px 18px; border-radius: 7px;
+    border: 1.5px solid rgba(255,255,255,.3); color: white;
+    font-size: .85rem; font-weight: 600; text-decoration: none;
+    transition: .18s;
+}
+.btn-nav-outline:hover { background: rgba(255,255,255,.1); }
+.btn-nav-solid {
+    padding: 7px 18px; border-radius: 7px;
+    background: var(--teal); color: white;
+    font-size: .85rem; font-weight: 600; text-decoration: none;
+    transition: .18s;
+}
+.btn-nav-solid:hover { background: #0a6565; }
+.btn-nav-ghost {
+    padding: 7px 14px; color: #94a3b8;
+    font-size: .85rem; text-decoration: none; transition: color .18s;
+}
+.btn-nav-ghost:hover { color: white; }
+
+/* ── HERO ────────────────────────────── */
+.hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #1a4a6b 60%, #0c7b7b 100%);
+    position: relative; overflow: hidden; min-height: 540px;
+    display: flex; align-items: center;
+}
+.hero-bg-shapes { position: absolute; inset: 0; pointer-events: none; }
+.shape {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,.03);
+}
+.shape-1 { width: 500px; height: 500px; top: -200px; right: -100px; }
+.shape-2 { width: 300px; height: 300px; bottom: -100px; left: 10%; }
+.shape-3 { width: 180px; height: 180px; top: 40%; right: 30%; background: rgba(168,213,213,.05); }
+.hero-inner {
+    max-width: 1200px; margin: 0 auto; padding: 70px 32px;
+    display: grid; grid-template-columns: 1fr 340px;
+    gap: 60px; align-items: center; width: 100%;
+    position: relative; z-index: 1;
+}
+.hero-badge {
+    display: inline-block; background: rgba(255,255,255,.12);
+    color: #a8d5d5; padding: 5px 14px; border-radius: 20px;
+    font-size: .78rem; font-weight: 700; letter-spacing: .5px;
+    margin-bottom: 18px;
+}
+.hero-text h1 {
+    font-family: 'Lora', serif; font-size: 3rem;
+    color: white; line-height: 1.2; margin-bottom: 18px; font-weight: 600;
+}
+.hero-text h1 em { color: #a8d5d5; font-style: normal; }
+.hero-text p {
+    color: rgba(255,255,255,.75); font-size: 1.05rem;
+    line-height: 1.7; margin-bottom: 28px; max-width: 480px;
+}
+.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+.hero-btn-primary {
+    padding: 12px 26px; background: var(--teal); color: white;
+    border-radius: 8px; font-size: .95rem; font-weight: 700;
+    text-decoration: none; transition: .2s;
+}
+.hero-btn-primary:hover { background: #0a6565; transform: translateY(-1px); }
+.hero-btn-secondary {
+    padding: 12px 26px; color: white;
+    border: 1.5px solid rgba(255,255,255,.4); border-radius: 8px;
+    font-size: .95rem; font-weight: 600; text-decoration: none; transition: .2s;
+}
+.hero-btn-secondary:hover { background: rgba(255,255,255,.1); }
+.hero-trust { display: flex; gap: 20px; flex-wrap: wrap; }
+.trust-item { font-size: .8rem; color: rgba(255,255,255,.6); }
+.trust-item::before { color: #a8d5d5; }
+
+/* Float cards en hero */
+.hero-card-float { display: flex; flex-direction: column; gap: 14px; }
+.float-card {
+    background: rgba(255,255,255,.10); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,.15); border-radius: 12px;
+    padding: 16px 20px; display: flex; align-items: center; gap: 14px;
+}
+.fc-teal { background: rgba(12,123,123,.3); }
+.fc-navy { background: rgba(13,43,69,.5); }
+.float-card-icon { font-size: 1.6rem; }
+.float-card-title { color: white; font-weight: 700; font-size: .9rem; }
+.float-card-sub { color: rgba(255,255,255,.6); font-size: .78rem; margin-top: 2px; }
+
+/* ── SECTIONS ────────────────────────── */
+.section { padding: 70px 0; }
+.section-gray { background: var(--slate-100); }
+.section-inner { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.section-header { text-align: center; margin-bottom: 44px; }
+.section-label {
+    display: inline-block; background: var(--teal-lt); color: var(--teal);
+    padding: 4px 14px; border-radius: 20px; font-size: .78rem;
+    font-weight: 700; letter-spacing: .5px; margin-bottom: 12px;
+}
+.section-header h2 {
+    font-family: 'Lora', serif; font-size: 2rem;
+    color: var(--navy); font-weight: 600; margin-bottom: 10px;
+}
+.section-header p { color: var(--slate-500); font-size: .95rem; max-width: 500px; margin: 0 auto; }
+
+/* ── SERVICES ────────────────────────── */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+.service-card {
+    background: white; border: 1px solid var(--slate-200);
+    border-radius: 14px; padding: 28px 24px;
+    box-shadow: var(--shadow-sm); transition: .2s;
+}
+.service-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.svc-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-bottom: 16px;
+}
+.service-card h3 { font-size: .95rem; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+.service-card p { font-size: .85rem; color: var(--slate-500); line-height: 1.6; }
+
+/* ── NEWS ────────────────────────────── */
+.news-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 18px;
+}
+.news-card {
+    background: white; border: 1px solid var(--slate-200);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: var(--shadow-sm); transition: .2s;
+}
+.news-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.news-featured { grid-row: 1 / 3; display: flex; flex-direction: column; }
+.news-img {
+    height: 180px; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+}
+.news-img-sm {
+    height: 100px; display: flex; align-items: center; justify-content: center;
+}
+.news-body { padding: 20px; flex: 1; }
+.news-body-sm { padding: 16px; }
+.news-cat {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: .7rem; font-weight: 700; letter-spacing: .4px;
+    background: var(--teal-lt); color: var(--teal); margin-bottom: 8px;
+}
+.cat-green { background: #dcfce7; color: #16a34a; }
+.cat-amber { background: #fef3c7; color: #b45309; }
+.cat-red   { background: #fee2e2; color: #c0392b; }
+.cat-purple { background: #f3e8ff; color: #6d28d9; }
+.news-body h3, .news-body-sm h3 {
+    font-size: .95rem; font-weight: 700; color: var(--navy);
+    margin-bottom: 8px; line-height: 1.4;
+}
+.news-body p, .news-body-sm p {
+    font-size: .83rem; color: var(--slate-500); line-height: 1.6;
+    margin-bottom: 12px;
+}
+.news-footer {
+    display: flex; gap: 14px; font-size: .75rem; color: #94a3b8;
+}
+
+/* ── MAPA ────────────────────────────── */
+.map-container {
+    display: grid; grid-template-columns: 220px 1fr;
+    gap: 0; border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--slate-200); box-shadow: var(--shadow-md);
+    min-height: 460px;
+}
+.map-sidebar {
+    background: white; padding: 20px;
+    border-right: 1px solid var(--slate-200);
+    display: flex; flex-direction: column;
+}
+.map-sidebar h4 {
+    font-size: .85rem; font-weight: 700; color: var(--navy); margin-bottom: 14px;
+}
+.map-filter {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-radius: 7px; cursor: pointer;
+    font-size: .82rem; font-weight: 500; color: var(--slate-700);
+    transition: .15s; margin-bottom: 4px; user-select: none;
+}
+.map-filter:hover, .map-filter.active { background: var(--slate-100); }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-blue  { background: #2563eb; }
+.dot-red   { background: #c0392b; }
+.dot-green { background: #16a34a; }
+.btn-localize {
+    width: 100%; padding: 9px; border-radius: 8px;
+    background: var(--navy); color: white;
+    border: none; font-family: inherit; font-size: .83rem;
+    font-weight: 600; cursor: pointer; transition: .18s; margin-top: auto;
+}
+.btn-localize:hover { background: var(--navy-lt); }
+.map-area { min-height: 460px; z-index: 1; }
+
+/* ── CTA SECTION ─────────────────────── */
+.cta-section {
+    background: linear-gradient(135deg, var(--navy), #1a4a6b);
+    padding: 70px 32px; text-align: center;
+}
+.cta-inner { max-width: 600px; margin: 0 auto; }
+.cta-section h2 {
+    font-family: 'Lora', serif; font-size: 2rem;
+    color: white; font-weight: 600; margin-bottom: 12px;
+}
+.cta-section p { color: rgba(255,255,255,.7); font-size: 1rem; margin-bottom: 28px; }
+
+/* ── FOOTER ──────────────────────────── */
+.home-footer { background: #080e14; padding: 28px 32px; }
+.footer-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: #64748b;
+}
+.footer-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+
+/* ── RESPONSIVE ──────────────────────── */
+@media (max-width: 860px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-card-float { flex-direction: row; flex-wrap: wrap; }
+    .news-grid { grid-template-columns: 1fr; }
+    .news-featured { grid-row: auto; }
+    .map-container { grid-template-columns: 1fr; }
+    .map-sidebar { border-right: none; border-bottom: 1px solid var(--slate-200); }
+    .home-nav-links { display: none; }
+}
+</style>
+
+<script>
+// ── MAPA LEAFLET + OPENSTREETMAP ─────────────────────────
+let map, markersAll = [], markersFarmacia = [], markersConsultorio = [];
+let userMarker = null;
+
+function initMap(lat, lng) {
+    if (map) { map.setView([lat, lng], 15); return; }
+
+    map = L.map('mapa').setView([lat, lng], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Ícono para farmacia
+    const iconFarmacia = L.divIcon({
+        className: '',
+        html: '<div style="background:#c0392b;color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.3);">💊</div>',
+        iconSize: [30, 30], iconAnchor: [15, 15]
+    });
+    // Ícono para farmacia con consultorio
+    const iconConsultorio = L.divIcon({
+        className: '',
+        html: '<div style="background:#16a34a;color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.3);">🏥</div>',
+        iconSize: [30, 30], iconAnchor: [15, 15]
+    });
+
+    // Consultar Overpass API para farmacias cercanas
+    const bbox = `${lat-0.015},${lng-0.02},${lat+0.015},${lng+0.02}`;
+    const query = `[out:json][timeout:15];
+(
+  node["amenity"="pharmacy"](${bbox});
+  way["amenity"="pharmacy"](${bbox});
+  node["healthcare"="pharmacy"](${bbox});
+  node["shop"="chemist"](${bbox});
+)(>.;);
+out center;`;
+
+    document.getElementById('map-status').textContent = 'Buscando farmacias cercanas...';
+
+    fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: 'data=' + encodeURIComponent(query)
+    })
+    .then(r => r.json())
+    .then(data => {
+        markersAll = []; markersFarmacia = []; markersConsultorio = [];
+        let count = 0;
+
+        data.elements.forEach(el => {
+            const elLat = el.lat || (el.center && el.center.lat);
+            const elLng = el.lon || (el.center && el.center.lon);
+            if (!elLat || !elLng) return;
+
+            const nombre = el.tags?.name || 'Farmacia';
+            const tieneConsultorio = nombre.toLowerCase().includes('consultorio') ||
+                                     nombre.toLowerCase().includes('doctor') ||
+                                     nombre.toLowerCase().includes('similares') ||
+                                     nombre.toLowerCase().includes('del ahorro') ||
+                                     nombre.toLowerCase().includes('benavides') ||
+                                     (el.tags?.['healthcare:speciality'] != null);
+
+            const icon = tieneConsultorio ? iconConsultorio : iconFarmacia;
+            const tipo = tieneConsultorio ? 'Con consultorio' : 'Farmacia';
+            const color = tieneConsultorio ? '#16a34a' : '#c0392b';
+
+            const marker = L.marker([elLat, elLng], { icon })
+                .bindPopup(`
+                    <div style="min-width:180px; font-family:sans-serif;">
+                        <div style="font-weight:700; color:#0d2b45; margin-bottom:4px;">${nombre}</div>
+                        <div style="display:inline-block; padding:2px 8px; border-radius:12px;
+                             background:${color}20; color:${color}; font-size:.75rem; font-weight:700;">
+                            ${tipo}
+                        </div>
+                        ${el.tags?.['opening_hours'] ? `<div style="margin-top:6px; font-size:.78rem; color:#64748b;">🕐 ${el.tags['opening_hours']}</div>` : ''}
+                        ${el.tags?.phone ? `<div style="font-size:.78rem; color:#64748b;">📞 ${el.tags.phone}</div>` : ''}
+                    </div>
+                `)
+                .addTo(map);
+
+            markersAll.push(marker);
+            if (tieneConsultorio) markersConsultorio.push(marker);
+            else markersFarmacia.push(marker);
+            count++;
+        });
+
+        document.getElementById('map-status').textContent =
+            count > 0 ? `✓ ${count} farmacias encontradas` : 'No se encontraron farmacias en este radio.';
+    })
+    .catch(() => {
+        document.getElementById('map-status').textContent = 'Error al cargar farmacias. Verifica tu conexión.';
+    });
+}
+
+function localizarme() {
+    const status = document.getElementById('map-status');
+    if (!navigator.geolocation) {
+        status.textContent = '⚠ Geolocalización no soportada en este navegador.';
+        return;
+    }
+    status.textContent = '📍 Obteniendo tu ubicación...';
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const { latitude: lat, longitude: lng } = pos.coords;
+            initMap(lat, lng);
+
+            const userIcon = L.divIcon({
+                className: '',
+                html: '<div style="background:#2563eb;color:white;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(37,99,235,.5);border:3px solid white;">📍</div>',
+                iconSize: [34, 34], iconAnchor: [17, 17]
+            });
+            if (userMarker) map.removeLayer(userMarker);
+            userMarker = L.marker([lat, lng], { icon: userIcon })
+                .bindPopup('<strong>Tu ubicación</strong>')
+                .addTo(map).openPopup();
+        },
+        err => {
+            // Si el usuario niega la ubicación, cargar con CDMX por defecto
+            status.textContent = 'Ubicación no disponible. Mostrando área default.';
+            initMap(19.4326, -99.1332);
+        }
+    );
+}
+
+function filtrarMapa(tipo) {
+    document.querySelectorAll('.map-filter').forEach(f => f.classList.remove('active'));
+    document.getElementById('filter-' + tipo).classList.add('active');
+
+    const mostrar = tipo === 'all' ? markersAll
+                  : tipo === 'farmacia' ? markersFarmacia
+                  : markersConsultorio;
+    const ocultar = markersAll.filter(m => !mostrar.includes(m));
+
+    if (!map) return;
+    mostrar.forEach(m => m.addTo(map));
+    ocultar.forEach(m => map.removeLayer(m));
+}
+
+// Inicializar mapa cuando la sección sea visible
+const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !map) {
+        localizarme();
+    }
+}, { threshold: 0.3 });
+observer.observe(document.getElementById('mapa'));
+</script>
+
+{% endblock %}

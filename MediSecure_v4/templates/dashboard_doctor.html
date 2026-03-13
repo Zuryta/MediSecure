@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <div class="page-title">Interfaz Médica</div>
+        <div class="page-subtitle">Panel de gestión — Dr. {{ current_user.username }}</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span class="badge badge-info" style="font-size:.8rem;padding:5px 12px;">🩺 Médico</span>
+    </div>
+</div>
+
+<!-- ── Stats ────────────────────────────────── -->
+<div class="stats-grid" style="margin-bottom:20px;">
+    <div class="stat-box">
+        <div class="stat-label">Citas disponibles</div>
+        <div class="stat-value" style="color:var(--navy);">
+            {{ citas|selectattr('doctor_id','none')|list|length }}
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">Mis citas</div>
+        <div class="stat-value" style="color:#2563eb;">
+            {{ citas|selectattr('doctor_id','equalto',current_user.id)|list|length }}
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">Mis pacientes</div>
+        <div class="stat-value" style="color:var(--teal);">{{ mis_pacientes|length }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">Completadas</div>
+        <div class="stat-value" style="color:var(--green);">
+            {{ citas|selectattr('status','equalto','completada')|selectattr('doctor_id','equalto',current_user.id)|list|length }}
+        </div>
+    </div>
+</div>
+
+<!-- ── Tabs ─────────────────────────────────── -->
+<div class="tabs-bar">
+    <button class="tab-btn active" onclick="showTab('tab-citas', this)">📋 Citas</button>
+    <button class="tab-btn" onclick="showTab('tab-pacientes', this)">👥 Mis Pacientes</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 1: CITAS
+═══════════════════════════════════════════ -->
+<div id="tab-citas" class="tab-panel">
+
+    <!-- Filtros -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="filtros-status">
+        <button class="btn-filtro active" onclick="filtrar('all',this)">Todas</button>
+        <button class="btn-filtro" onclick="filtrar('sin_asignar',this)">🆕 Sin asignar</button>
+        <button class="btn-filtro" onclick="filtrar('mias',this)">🩺 Mis citas</button>
+        <button class="btn-filtro" onclick="filtrar('pendiente',this)">⏳ Pendientes</button>
+        <button class="btn-filtro" onclick="filtrar('en_proceso',this)">⚙ En proceso</button>
+        <button class="btn-filtro" onclick="filtrar('completada',this)">✓ Completadas</button>
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <div class="icon-badge">📋</div>
+            <h3>Citas del sistema</h3>
+        </div>
+        {% if citas %}
+        <div class="table-wrap">
+            <table id="tabla-citas">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Paciente</th>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Síntomas</th>
+                        <th>Asignación</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for cita in citas %}
+                {% set es_mia = (cita.doctor_id == current_user.id) %}
+                {% set sin_asignar = (cita.doctor_id == None) %}
+                <tr class="fila-cita"
+                    data-status="{{ cita.status or 'pendiente' }}"
+                    data-asign="{{ 'mia' if es_mia else 'libre' }}">
+                    <td style="color:var(--slate-500);font-size:.8rem;">#{{ cita.id }}</td>
+                    <td style="font-weight:600;">
+                        <div>{{ pacientes.get(cita.paciente_id, 'Paciente #' ~ cita.paciente_id) }}</div>
+                        {% if cita.nombre_completo %}
+                        <div style="font-size:.75rem;color:var(--slate-500);">{{ cita.nombre_completo }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ cita.fecha }}</td>
+                    <td>
+                        <span class="badge badge-navy" style="font-size:.72rem;">
+                            {{ cita.tipo_consulta or 'General' }}
+                        </span>
+                    </td>
+                    <td style="color:var(--slate-500);font-style:italic;max-width:160px;">
+                        "{{ cita.sintomas }}"
+                    </td>
+                    <td>
+                        {% if sin_asignar %}
+                            <span class="badge badge-warning">🆕 Libre</span>
+                        {% elif es_mia %}
+                            <span class="badge badge-info">🩺 Mía</span>
+                        {% else %}
+                            <span class="badge" style="background:#f1f5f9;color:#64748b;">Otro médico</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set s = cita.status or 'pendiente' %}
+                        {% if s == 'completada' %}
+                            <span class="badge badge-success">✓ Completada</span>
+                        {% elif s == 'en_proceso' %}
+                            <span class="badge" style="background:#dbeafe;color:#2563eb;">⚙ En proceso</span>
+                        {% elif s == 'expirada' %}
+                            <span class="badge badge-danger">✕ Expirada</span>
+                        {% elif s == 'cancelada' %}
+                            <span class="badge badge-danger">✕ Cancelada</span>
+                        {% else %}
+                            <span class="badge badge-warning">⏳ Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td style="min-width:220px;">
+                        {% set s = cita.status or 'pendiente' %}
+
+                        <!-- TOMAR CITA si está libre -->
+                        {% if sin_asignar and s not in ('expirada','cancelada') %}
+                        <form action="/tomar_cita/{{ cita.id }}" method="POST" style="margin-bottom:6px;">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                ➕ Tomar cita
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <!-- Acciones si es mía -->
+                        {% if es_mia %}
+                            {% if not cita.receta_cifrada and s not in ('expirada','cancelada') %}
+                            <details style="margin-bottom:6px;">
+                                <summary class="btn btn-outline btn-sm" style="cursor:pointer;list-style:none;">
+                                    📝 Escribir receta
+                                </summary>
+                                <form action="/recetar/{{ cita.id }}" method="POST"
+                                      style="display:flex;flex-direction:column;gap:7px;margin-top:8px;">
+                                    <textarea class="form-control" name="receta" rows="3"
+                                              placeholder="Tratamiento, dosis, indicaciones…"
+                                              required maxlength="2000"
+                                              style="font-size:.83rem;padding:7px 10px;"></textarea>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        🔒 Cifrar y guardar
+                                    </button>
+                                </form>
+                            </details>
+                            {% elif cita.receta_cifrada %}
+                                <div class="badge badge-success" style="margin-bottom:6px;display:inline-flex;">
+                                    ✓ Receta emitida
+                                </div>
+                            {% endif %}
+
+                            {% if s not in ('completada','expirada','cancelada') %}
+                            <form action="/completar_cita/{{ cita.id }}" method="POST"
+                                  style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                                <select name="nuevo_status" class="form-control"
+                                        style="padding:5px 8px;font-size:.78rem;width:auto;">
+                                    <option value="en_proceso" {% if s=='en_proceso' %}selected{% endif %}>⚙ En proceso</option>
+                                    <option value="completada">✓ Completada</option>
+                                    <option value="cancelada">✕ Cancelar</option>
+                                </select>
+                                <button type="submit" class="btn btn-navy btn-sm">Actualizar</button>
+                            </form>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>No hay citas disponibles actualmente.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 2: MIS PACIENTES
+═══════════════════════════════════════════ -->
+<div id="tab-pacientes" class="tab-panel" style="display:none;">
+    <div class="card">
+        <div class="card-head">
+            <div class="icon-badge">👥</div>
+            <h3>Mis Pacientes</h3>
+        </div>
+
+        {% if mis_pacientes %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Consultas</th>
+                        <th>Última cita</th>
+                        <th>Recetas emitidas</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for pac in mis_pacientes %}
+                {% set pcitas = citas | selectattr('paciente_id','equalto',pac.id) | selectattr('doctor_id','equalto',current_user.id) | list %}
+                {% set ultima = pcitas | sort(attribute='fecha') | last if pcitas else None %}
+                {% set nrecetas = pcitas | selectattr('receta_cifrada') | list | length %}
+                <tr>
+                    <td style="font-weight:600;">
+                        👤 {{ pac.username }}
+                        {% if pcitas and pcitas[0].nombre_completo %}
+                        <div style="font-size:.75rem;color:var(--slate-500);">{{ pcitas[0].nombre_completo }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-navy">{{ pcitas|length }}</span>
+                    </td>
+                    <td>{{ ultima.fecha if ultima else '—' }}</td>
+                    <td>
+                        {% if nrecetas > 0 %}
+                        <span class="badge badge-success">{{ nrecetas }} receta{{ 's' if nrecetas > 1 else '' }}</span>
+                        {% else %}
+                        <span style="color:var(--slate-400);font-size:.8rem;">Sin recetas</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/paciente/{{ pac.id }}" class="btn btn-outline btn-sm">
+                            📂 Ver historial
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <p>Aún no tienes pacientes asignados. Toma una cita para comenzar.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ── Styles ─────────────────────────── -->
+<style>
+.tabs-bar {
+    display: flex; gap: 4px; margin-bottom: 16px;
+    border-bottom: 2px solid var(--slate-200);
+    padding-bottom: 0;
+}
+.tab-btn {
+    padding: 9px 20px; border: none; background: none;
+    font-family: inherit; font-size: .85rem; font-weight: 600;
+    color: var(--slate-500); cursor: pointer; border-radius: 8px 8px 0 0;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    transition: .15s;
+}
+.tab-btn:hover { background: var(--slate-100); }
+.tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); background: none; }
+
+.btn-filtro {
+    padding: 5px 13px; border-radius: 20px; border: 1.5px solid var(--slate-200);
+    background: white; font-family: inherit; font-size: .78rem; font-weight: 600;
+    color: var(--slate-500); cursor: pointer; transition: .15s;
+}
+.btn-filtro:hover { background: var(--slate-100); }
+.btn-filtro.active { background: var(--navy); color: white; border-color: var(--navy); }
+details > summary { display: inline-flex; }
+details[open] > summary { background: var(--teal-lt); color: var(--teal); }
+</style>
+
+<script>
+function showTab(tabId, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).style.display = '';
+    btn.classList.add('active');
+}
+
+function filtrar(tipo, btn) {
+    document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.fila-cita').forEach(row => {
+        const s = row.dataset.status;
+        const a = row.dataset.asign;
+        let show = false;
+        if (tipo === 'all')         show = true;
+        else if (tipo === 'sin_asignar') show = (a === 'libre');
+        else if (tipo === 'mias')   show = (a === 'mia');
+        else                        show = (s === tipo);
+        row.style.display = show ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

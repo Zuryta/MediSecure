@@ -1,0 +1,8 @@
+flask
+flask-sqlalchemy
+flask-login
+werkzeug
+cryptography
+pyotp
+qrcode[pil]
+gunicorn
