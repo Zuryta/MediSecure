@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="page-title">Panel de Administración</div>
+        <div class="page-subtitle">Control de accesos y aprobación de personal médico</div>
+    </div>
+    <span class="badge badge-navy" style="font-size:.8rem; padding:5px 12px;">
+        👤 {{ current_user.username }}
+    </span>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+    <div class="stat-box">
+        <div class="stat-label">Solicitudes pendientes</div>
+        <div class="stat-value" style="color:{% if doctores %}var(--red){% else %}var(--green){% endif %};">
+            {{ doctores | length }}
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">Estado del sistema</div>
+        <div style="margin-top:6px;">
+            <span class="badge badge-success" style="font-size:.82rem;">● Operativo</span>
+        </div>
+    </div>
+</div>
+
+<!-- TABLA DE DOCTORES PENDIENTES -->
+<div class="card">
+    <div class="card-head">
+        <div class="icon-badge">🩺</div>
+        <h3>Solicitudes de acceso — Médicos</h3>
+    </div>
+
+    {% if doctores %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre de usuario</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in doctores %}
+                <tr>
+                    <td style="color:var(--slate-500); font-size:.8rem;">#{{ doc.id }}</td>
+                    <td style="font-weight:600;">{{ doc.username }}</td>
+                    <td><span class="badge badge-danger">⏸ Pendiente de aprobación</span></td>
+                    <td>
+                        <a href="/aprobar_doctor/{{ doc.id }}" class="btn btn-success btn-sm">
+                            ✓ Aprobar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <p>No hay solicitudes pendientes de aprobación.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

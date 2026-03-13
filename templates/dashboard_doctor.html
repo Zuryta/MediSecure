@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="page-title">Interfaz Médica</div>
+        <div class="page-subtitle">Gestión de citas y prescripciones — Dr. {{ current_user.username }}</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span class="badge badge-info" style="font-size:.8rem; padding:5px 12px;">🩺 Médico</span>
+        <!-- Filtros de estado -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="filtros-status">
+            <button class="btn-filtro active" onclick="filtrar('all')">Todas</button>
+            <button class="btn-filtro" onclick="filtrar('pendiente')">Pendientes</button>
+            <button class="btn-filtro" onclick="filtrar('en_proceso')">En proceso</button>
+            <button class="btn-filtro" onclick="filtrar('completada')">Completadas</button>
+            <button class="btn-filtro" onclick="filtrar('expirada')">Expiradas</button>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen rápido -->
+<div class="stats-grid" style="margin-bottom:20px;">
+    <div class="stat-box">
+        <div class="stat-label">Total citas</div>
+        <div class="stat-value" style="color:var(--navy);">{{ citas|length }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">Pendientes</div>
+        <div class="stat-value" style="color:var(--amber);">
+            {{ citas|selectattr('status','equalto','pendiente')|list|length }}
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">En proceso</div>
+        <div class="stat-value" style="color:#2563eb;">
+            {{ citas|selectattr('status','equalto','en_proceso')|list|length }}
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">Completadas</div>
+        <div class="stat-value" style="color:var(--green);">
+            {{ citas|selectattr('status','equalto','completada')|list|length }}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        <div class="icon-badge">📋</div>
+        <h3>Citas asignadas</h3>
+    </div>
+
+    {% if citas %}
+    <div class="table-wrap">
+        <table id="tabla-citas">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Paciente</th>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Síntomas</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cita in citas %}
+                <tr class="fila-cita" data-status="{{ cita.status or 'pendiente' }}">
+                    <td style="color:var(--slate-500); font-size:.8rem;">#{{ cita.id }}</td>
+                    <td style="font-weight:600;">
+                        <div>{{ pacientes.get(cita.paciente_id, 'Paciente #' ~ cita.paciente_id) }}</div>
+                        {% if cita.nombre_completo %}
+                        <div style="font-size:.75rem;color:var(--slate-500);">{{ cita.nombre_completo }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ cita.fecha }}</td>
+                    <td>
+                        <span class="badge badge-navy" style="font-size:.72rem;">
+                            {{ cita.tipo_consulta or 'General' }}
+                        </span>
+                    </td>
+                    <td style="color:var(--slate-500); font-style:italic; max-width:180px;">
+                        "{{ cita.sintomas }}"
+                    </td>
+                    <td>
+                        {% set s = cita.status or 'pendiente' %}
+                        {% if s == 'completada' %}
+                            <span class="badge badge-success">✓ Completada</span>
+                        {% elif s == 'en_proceso' %}
+                            <span class="badge" style="background:#dbeafe;color:#2563eb;">⚙ En proceso</span>
+                        {% elif s == 'expirada' %}
+                            <span class="badge badge-danger">✕ Expirada</span>
+                        {% elif s == 'cancelada' %}
+                            <span class="badge badge-danger">✕ Cancelada</span>
+                        {% else %}
+                            <span class="badge badge-warning">⏳ Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td style="min-width:230px;">
+                        {% set s = cita.status or 'pendiente' %}
+
+                        <!-- Formulario para recetar -->
+                        {% if not cita.receta_cifrada and s not in ('expirada','cancelada') %}
+                        <details style="margin-bottom:8px;">
+                            <summary class="btn btn-outline btn-sm" style="cursor:pointer;list-style:none;">
+                                📝 Escribir receta
+                            </summary>
+                            <form action="/recetar/{{ cita.id }}" method="POST"
+                                  style="display:flex; flex-direction:column; gap:7px; margin-top:8px;">
+                                <textarea class="form-control" name="receta" rows="3"
+                                          placeholder="Escriba el tratamiento, dosis, indicaciones…"
+                                          required maxlength="2000"
+                                          style="font-size:.83rem; padding:7px 10px;"></textarea>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    🔒 Cifrar y guardar receta
+                                </button>
+                            </form>
+                        </details>
+                        {% elif cita.receta_cifrada %}
+                            <div class="badge badge-success" style="margin-bottom:8px;display:inline-flex;">
+                                ✓ Receta emitida
+                            </div>
+                        {% endif %}
+
+                        <!-- Cambiar estado -->
+                        {% if s not in ('completada','expirada','cancelada') %}
+                        <form action="/completar_cita/{{ cita.id }}" method="POST"
+                              style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                            <select name="nuevo_status" class="form-control"
+                                    style="padding:5px 8px;font-size:.78rem;width:auto;">
+                                <option value="en_proceso" {% if s=='en_proceso' %}selected{% endif %}>
+                                    ⚙ En proceso
+                                </option>
+                                <option value="completada">✓ Completada</option>
+                                <option value="cancelada">✕ Cancelar</option>
+                            </select>
+                            <button type="submit" class="btn btn-navy btn-sm">
+                                Actualizar
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p>No hay citas asignadas actualmente.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.btn-filtro {
+    padding: 5px 13px; border-radius: 20px; border: 1.5px solid var(--slate-200);
+    background: white; font-family: inherit; font-size: .78rem; font-weight: 600;
+    color: var(--slate-500); cursor: pointer; transition: .15s;
+}
+.btn-filtro:hover { background: var(--slate-100); }
+.btn-filtro.active {
+    background: var(--navy); color: white; border-color: var(--navy);
+}
+details > summary { display: inline-flex; }
+details[open] > summary { background: var(--teal-lt); color: var(--teal); }
+</style>
+
+<script>
+function filtrar(status) {
+    document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.fila-cita').forEach(row => {
+        if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

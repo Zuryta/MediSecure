@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="page-title">Portal del Paciente</div>
+        <div class="page-subtitle">Historial clínico y solicitud de atención médica</div>
+    </div>
+    <span class="badge badge-info" style="font-size:.8rem; padding:5px 12px;">
+        🏥 {{ current_user.username }}
+    </span>
+</div>
+
+<!-- ═══════════════════════════════════════
+     FORMULARIO EXTENDIDO DE CONSULTA
+═════════════════════════════════════════ -->
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-head">
+        <div class="icon-badge">➕</div>
+        <h3>Solicitar nueva consulta médica</h3>
+    </div>
+    <div class="card-body">
+        <form action="/crear_cita" method="POST" novalidate>
+
+            <!-- SECCIÓN 1: Datos de la cita -->
+            <div class="form-section">
+                <div class="form-section-title">📅 Datos de la consulta</div>
+                <div class="form-row3">
+                    <div class="form-group">
+                        <label for="fecha">Fecha deseada *</label>
+                        <input class="form-control" type="date" id="fecha" name="fecha"
+                               required style="color-scheme:light;"
+                               value="{{ form_cita.get('fecha','') }}"
+                               min="{{ today }}" max="{{ max_date }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo_consulta">Tipo de consulta *</label>
+                        <select class="form-control" id="tipo_consulta" name="tipo_consulta" required>
+                            <option value="">— Seleccionar —</option>
+                            <option value="general">Medicina general</option>
+                            <option value="urgencia">Urgencia</option>
+                            <option value="seguimiento">Seguimiento</option>
+                            <option value="pediatria">Pediatría</option>
+                            <option value="ginecologia">Ginecología / Obstetricia</option>
+                            <option value="cardiologia">Cardiología</option>
+                            <option value="dermatologia">Dermatología</option>
+                            <option value="nutricion">Nutrición</option>
+                            <option value="psicologia">Psicología</option>
+                            <option value="traumatologia">Traumatología</option>
+                            <option value="oftalmologia">Oftalmología</option>
+                            <option value="otro">Otro especialista</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sintomas">Motivo / síntomas principales *</label>
+                        <input class="form-control" type="text" id="sintomas" name="sintomas"
+                               placeholder="ej. Dolor de cabeza, fiebre, mareo…"
+                               required maxlength="500"
+                               value="{{ form_cita.get('sintomas','') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <!-- SECCIÓN 2: Datos personales del paciente -->
+            <div class="form-section">
+                <div class="form-section-title">👤 Datos personales del paciente</div>
+                <div class="form-row3">
+                    <div class="form-group">
+                        <label for="nombre_completo">Nombre completo *</label>
+                        <input class="form-control" type="text" id="nombre_completo" name="nombre_completo"
+                               placeholder="Como aparece en tu identificación"
+                               maxlength="150" required
+                               value="{{ form_cita.get('nombre_completo','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="edad">Edad (años) *</label>
+                        <input class="form-control" type="number" id="edad" name="edad"
+                               placeholder="ej. 32" min="0" max="130" required
+                               value="{{ form_cita.get('edad','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                        <input class="form-control" type="date" id="fecha_nacimiento" name="fecha_nacimiento"
+                               style="color-scheme:light;"
+                               value="{{ form_cita.get('fecha_nacimiento','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="genero">Género *</label>
+                        <select class="form-control" id="genero" name="genero" required>
+                            <option value="">— Seleccionar —</option>
+                            <option value="masculino">Masculino</option>
+                            <option value="femenino">Femenino</option>
+                            <option value="otro">Otro</option>
+                            <option value="prefiero_no_decir">Prefiero no decir</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="estado_civil">Estado civil</label>
+                        <select class="form-control" id="estado_civil" name="estado_civil">
+                            <option value="">— Seleccionar —</option>
+                            <option value="soltero">Soltero/a</option>
+                            <option value="casado">Casado/a</option>
+                            <option value="union_libre">Unión libre</option>
+                            <option value="divorciado">Divorciado/a</option>
+                            <option value="viudo">Viudo/a</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ocupacion">Ocupación</label>
+                        <input class="form-control" type="text" id="ocupacion" name="ocupacion"
+                               placeholder="ej. Estudiante, Empleado, Independiente…"
+                               maxlength="100"
+                               value="{{ form_cita.get('ocupacion','') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <!-- SECCIÓN 3: Contacto e Identificación -->
+            <div class="form-section">
+                <div class="form-section-title">📋 Contacto e Identificación</div>
+                <div class="form-row3">
+                    <div class="form-group">
+                        <label for="telefono">Teléfono de contacto *</label>
+                        <input class="form-control" type="tel" id="telefono" name="telefono"
+                               placeholder="ej. 55 1234 5678" maxlength="20" required
+                               value="{{ form_cita.get('telefono','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Correo electrónico</label>
+                        <input class="form-control" type="email" id="email" name="email"
+                               placeholder="correo@ejemplo.com" maxlength="120"
+                               value="{{ form_cita.get('email','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="curp">CURP</label>
+                        <input class="form-control" type="text" id="curp" name="curp"
+                               placeholder="18 caracteres" maxlength="18"
+                               style="text-transform:uppercase;"
+                               oninput="this.value=this.value.toUpperCase()"
+                               value="{{ form_cita.get('curp','')|upper }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="direccion">Dirección</label>
+                        <input class="form-control" type="text" id="direccion" name="direccion"
+                               placeholder="Calle, número, colonia…" maxlength="250"
+                               value="{{ form_cita.get('direccion','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="ciudad">Ciudad / Municipio</label>
+                        <input class="form-control" type="text" id="ciudad" name="ciudad"
+                               placeholder="ej. Ciudad de México" maxlength="100"
+                               value="{{ form_cita.get('ciudad','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="estado">Estado</label>
+                        <select class="form-control" id="estado" name="estado">
+                            <option value="">— Seleccionar —</option>
+                            <option>Aguascalientes</option><option>Baja California</option>
+                            <option>Baja California Sur</option><option>Campeche</option>
+                            <option>Chiapas</option><option>Chihuahua</option>
+                            <option>Ciudad de México</option><option>Coahuila</option>
+                            <option>Colima</option><option>Durango</option>
+                            <option>Estado de México</option><option>Guanajuato</option>
+                            <option>Guerrero</option><option>Hidalgo</option>
+                            <option>Jalisco</option><option>Michoacán</option>
+                            <option>Morelos</option><option>Nayarit</option>
+                            <option>Nuevo León</option><option>Oaxaca</option>
+                            <option>Puebla</option><option>Querétaro</option>
+                            <option>Quintana Roo</option><option>San Luis Potosí</option>
+                            <option>Sinaloa</option><option>Sonora</option>
+                            <option>Tabasco</option><option>Tamaulipas</option>
+                            <option>Tlaxcala</option><option>Veracruz</option>
+                            <option>Yucatán</option><option>Zacatecas</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <!-- SECCIÓN 4: Datos médicos básicos -->
+            <div class="form-section">
+                <div class="form-section-title">⚕️ Datos médicos básicos</div>
+                <div class="form-row3">
+                    <div class="form-group">
+                        <label for="tipo_sangre">Tipo de sangre</label>
+                        <select class="form-control" id="tipo_sangre" name="tipo_sangre">
+                            <option value="">— Desconocido —</option>
+                            <option value="A+">A+</option><option value="A-">A−</option>
+                            <option value="B+">B+</option><option value="B-">B−</option>
+                            <option value="AB+">AB+</option><option value="AB-">AB−</option>
+                            <option value="O+">O+</option><option value="O-">O−</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="peso">Peso (kg)</label>
+                        <input class="form-control" type="number" id="peso" name="peso"
+                               placeholder="ej. 70" min="1" max="300" step="0.1"
+                               value="{{ form_cita.get('peso','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="talla">Talla (cm)</label>
+                        <input class="form-control" type="number" id="talla" name="talla"
+                               placeholder="ej. 170" min="30" max="250"
+                               value="{{ form_cita.get('talla','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="seguro_medico">Seguro médico</label>
+                        <select class="form-control" id="seguro_medico" name="seguro_medico">
+                            <option value="">— Ninguno / No sé —</option>
+                            <option value="IMSS">IMSS</option>
+                            <option value="ISSSTE">ISSSTE</option>
+                            <option value="INSABI">INSABI / Secretaría de Salud</option>
+                            <option value="PEMEX">PEMEX</option>
+                            <option value="SEDENA">SEDENA</option>
+                            <option value="SEMAR">SEMAR</option>
+                            <option value="privado">Seguro privado</option>
+                            <option value="particular">Particular</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="num_afiliacion">Número de afiliación / póliza</label>
+                        <input class="form-control" type="text" id="num_afiliacion" name="num_afiliacion"
+                               placeholder="ej. 12345678900" maxlength="30"
+                               value="{{ form_cita.get('num_afiliacion','') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <!-- SECCIÓN 5: Antecedentes clínicos -->
+            <div class="form-section">
+                <div class="form-section-title">🩺 Antecedentes clínicos</div>
+                <div class="form-row" style="grid-template-columns:1fr 1fr 1fr; gap:16px;">
+                    <div class="form-group">
+                        <label for="alergias">Alergias conocidas</label>
+                        <textarea class="form-control" id="alergias" name="alergias" rows="3"
+                                  data-val="{{ form_cita.get('alergias','') }}"
+                                  placeholder="ej. Penicilina, mariscos, látex… (ninguna si no aplica)"
+                                  maxlength="500"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="medicamentos">Medicamentos actuales</label>
+                        <textarea class="form-control" id="medicamentos" name="medicamentos" rows="3"
+                                  data-val="{{ form_cita.get('medicamentos','') }}"
+                                  placeholder="ej. Metformina 500mg, Atorvastatina…"
+                                  maxlength="500"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="antecedentes">Antecedentes relevantes</label>
+                        <textarea class="form-control" id="antecedentes" name="antecedentes" rows="3"
+                                  data-val="{{ form_cita.get('antecedentes','') }}"
+                                  placeholder="ej. Diabetes tipo 2, hipertensión, cirugías previas…"
+                                  maxlength="500"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <!-- SECCIÓN 6: Contacto de emergencia -->
+            <div class="form-section">
+                <div class="form-section-title">🚨 Contacto de emergencia</div>
+                <div class="form-row3">
+                    <div class="form-group">
+                        <label for="contacto_emergencia_nombre">Nombre del contacto</label>
+                        <input class="form-control" type="text" id="contacto_emergencia_nombre"
+                               name="contacto_emergencia_nombre"
+                               placeholder="Nombre completo" maxlength="150"
+                               value="{{ form_cita.get('contacto_emergencia_nombre','') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="contacto_emergencia_parentesco">Parentesco</label>
+                        <select class="form-control" id="contacto_emergencia_parentesco" name="contacto_emergencia_parentesco">
+                            <option value="">— Seleccionar —</option>
+                            <option value="padre_madre">Padre / Madre</option>
+                            <option value="esposo_esposa">Esposo / Esposa</option>
+                            <option value="hijo_hija">Hijo / Hija</option>
+                            <option value="hermano_hermana">Hermano / Hermana</option>
+                            <option value="amigo">Amigo/a</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="contacto_emergencia_tel">Teléfono del contacto</label>
+                        <input class="form-control" type="tel" id="contacto_emergencia_tel"
+                               name="contacto_emergencia_tel"
+                               placeholder="ej. 55 9876 5432" maxlength="20"
+                               value="{{ form_cita.get('contacto_emergencia_tel','') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+                <p style="font-size:.78rem; color:var(--slate-500);">
+                    * Campos obligatorios · Información protegida con cifrado AES-128
+                </p>
+                <button type="submit" class="btn btn-primary" style="padding:11px 28px;">
+                    Enviar solicitud de consulta →
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     HISTORIAL DE CITAS
+═════════════════════════════════════════ -->
+<div class="card" style="margin-bottom:24px;">
+    <div class="card-head">
+        <div class="icon-badge">📁</div>
+        <h3>Historial de consultas</h3>
+    </div>
+
+    {% if citas %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Síntomas / Motivo</th>
+                    <th>Estado cita</th>
+                    <th>Receta</th>
+                    <th>Documento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cita in citas %}
+                <tr>
+                    <td>{{ cita.fecha }}</td>
+                    <td>
+                        <span class="badge badge-navy" style="font-size:.72rem;">
+                            {{ cita.tipo_consulta or 'General' }}
+                        </span>
+                    </td>
+                    <td style="color:var(--slate-500); max-width:220px;">{{ cita.sintomas }}</td>
+                    <td>
+                        {% set s = cita.status or 'pendiente' %}
+                        {% if s == 'completada' %}
+                            <span class="badge badge-success">✓ Completada</span>
+                        {% elif s == 'en_proceso' %}
+                            <span class="badge" style="background:#dbeafe;color:#2563eb;">⚙ En proceso</span>
+                        {% elif s == 'expirada' %}
+                            <span class="badge badge-danger">✕ Expirada</span>
+                        {% elif s == 'cancelada' %}
+                            <span class="badge badge-danger">✕ Cancelada</span>
+                        {% else %}
+                            <span class="badge badge-warning">⏳ Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if cita.receta_cifrada %}
+                            <span class="badge badge-success">✓ Disponible</span>
+                        {% else %}
+                            <span class="badge badge-warning">⏳ En espera</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if cita.receta_cifrada %}
+                            <a href="/ver_receta/{{ cita.id }}" class="btn btn-outline btn-sm">
+                                Ver receta
+                            </a>
+                        {% else %}
+                            <button class="btn btn-sm" disabled
+                                    style="color:var(--slate-300);border:1.5px solid var(--slate-200);cursor:not-allowed;">
+                                No disponible
+                            </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p>No tiene historial médico registrado. Solicite su primera consulta arriba.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ═══════════════════════════════════════
+     MAPA DE FARMACIAS CERCANAS
+═════════════════════════════════════════ -->
+<div class="card">
+    <div class="card-head">
+        <div class="icon-badge">🗺️</div>
+        <h3>Farmacias y consultorios cercanos</h3>
+    </div>
+    <div class="card-body" style="padding:0;">
+        <div class="dash-map-container">
+            <div class="dash-map-sidebar">
+                <p style="font-size:.82rem; color:var(--slate-500); margin-bottom:14px;">
+                    Encuentra la farmacia más cercana para surtir tu receta.
+                </p>
+                <div style="margin-bottom:14px;">
+                    <p style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--slate-500); margin-bottom:8px;">Filtrar por tipo</p>
+                    <label class="map-filter active" id="df-all" onclick="dfFiltrar('all')">
+                        <span class="dot dot-blue"></span> Todas
+                    </label>
+                    <label class="map-filter" id="df-farmacia" onclick="dfFiltrar('farmacia')">
+                        <span class="dot dot-red"></span> Farmacias
+                    </label>
+                    <label class="map-filter" id="df-consultorio" onclick="dfFiltrar('consultorio')">
+                        <span class="dot dot-green"></span> Con consultorio
+                    </label>
+                </div>
+                <button onclick="dfLocalizar()" class="btn btn-primary btn-full btn-sm" style="margin-top:8px;">
+                    📍 Usar mi ubicación
+                </button>
+                <div id="df-status" style="margin-top:10px; font-size:.78rem; color:var(--slate-500); text-align:center;"></div>
+            </div>
+            <div id="dash-mapa" class="dash-map-area"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS + JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<style>
+.form-section { margin-bottom: 4px; }
+.form-section-title {
+    font-size: .8rem; font-weight: 700; color: var(--navy);
+    text-transform: uppercase; letter-spacing: .5px;
+    margin-bottom: 14px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--slate-100);
+    display: flex; align-items: center; gap: 6px;
+}
+.form-row3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+@media (max-width: 780px) {
+    .form-row3 { grid-template-columns: 1fr 1fr; }
+    .form-row { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 500px) {
+    .form-row3 { grid-template-columns: 1fr; }
+}
+.form-divider {
+    border: none; border-top: 1px solid var(--slate-100);
+    margin: 18px 0;
+}
+
+/* MAPA DASHBOARD */
+.dash-map-container {
+    display: grid; grid-template-columns: 200px 1fr;
+    min-height: 380px;
+}
+.dash-map-sidebar {
+    padding: 18px 16px;
+    border-right: 1px solid var(--slate-200);
+    display: flex; flex-direction: column;
+}
+.dash-map-area { min-height: 380px; z-index: 1; }
+.map-filter {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 6px; cursor: pointer;
+    font-size: .82rem; font-weight: 500; color: var(--slate-700);
+    transition: .15s; margin-bottom: 3px; user-select: none;
+}
+.map-filter:hover, .map-filter.active { background: var(--slate-100); }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.dot-blue  { background: #2563eb; }
+.dot-red   { background: #c0392b; }
+.dot-green { background: #16a34a; }
+@media (max-width:680px) {
+    .dash-map-container { grid-template-columns: 1fr; }
+    .dash-map-sidebar { border-right: none; border-bottom: 1px solid var(--slate-200); }
+}
+</style>
+
+<script>
+let dfMap, dfAll=[], dfFarm=[], dfCons=[], dfUser=null;
+
+function dfInitMap(lat, lng) {
+    if (dfMap) { dfMap.setView([lat, lng], 15); return; }
+    dfMap = L.map('dash-mapa').setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap', maxZoom: 19
+    }).addTo(dfMap);
+
+    const iF = L.divIcon({ className:'',
+        html:'<div style="background:#c0392b;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 5px rgba(0,0,0,.3);">💊</div>',
+        iconSize:[28,28], iconAnchor:[14,14] });
+    const iC = L.divIcon({ className:'',
+        html:'<div style="background:#16a34a;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 5px rgba(0,0,0,.3);">🏥</div>',
+        iconSize:[28,28], iconAnchor:[14,14] });
+
+    const bbox = `${lat-0.015},${lng-0.02},${lat+0.015},${lng+0.02}`;
+    const q = `[out:json][timeout:15];(node["amenity"="pharmacy"](${bbox});way["amenity"="pharmacy"](${bbox});)(>.;);out center;`;
+    document.getElementById('df-status').textContent = 'Buscando farmacias...';
+
+    fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data='+encodeURIComponent(q) })
+    .then(r => r.json())
+    .then(data => {
+        dfAll=[]; dfFarm=[]; dfCons=[];
+        let c=0;
+        data.elements.forEach(el => {
+            const la = el.lat||(el.center&&el.center.lat);
+            const lo = el.lon||(el.center&&el.center.lon);
+            if(!la||!lo) return;
+            const n = el.tags?.name||'Farmacia';
+            const cons = /consultorio|similares|ahorro|benavides|doctor|gi|san pablo/i.test(n);
+            const m = L.marker([la,lo],{icon:cons?iC:iF})
+                .bindPopup(`<div style="min-width:160px;font-family:sans-serif;">
+                    <b style="color:#0d2b45;">${n}</b><br>
+                    <span style="background:${cons?'#dcfce7':'#fee2e2'};color:${cons?'#16a34a':'#c0392b'};padding:2px 7px;border-radius:10px;font-size:.72rem;font-weight:700;">
+                        ${cons?'Con consultorio':'Farmacia'}
+                    </span>
+                    ${el.tags?.phone?`<br><small>📞 ${el.tags.phone}</small>`:''}
+                </div>`).addTo(dfMap);
+            dfAll.push(m); if(cons) dfCons.push(m); else dfFarm.push(m); c++;
+        });
+        document.getElementById('df-status').textContent = c>0?`✓ ${c} farmacias encontradas`:'Sin resultados en este radio.';
+    })
+    .catch(()=>{ document.getElementById('df-status').textContent='Error al cargar el mapa.'; });
+}
+
+function dfLocalizar() {
+    if(!navigator.geolocation){ document.getElementById('df-status').textContent='Sin soporte de geolocalización.'; return; }
+    document.getElementById('df-status').textContent='📍 Obteniendo ubicación...';
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            dfInitMap(pos.coords.latitude, pos.coords.longitude);
+            const uI = L.divIcon({className:'',
+                html:'<div style="background:#2563eb;border:3px solid white;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(37,99,235,.5);">📍</div>',
+                iconSize:[32,32],iconAnchor:[16,16]});
+            if(dfUser) dfMap.removeLayer(dfUser);
+            dfUser = L.marker([pos.coords.latitude,pos.coords.longitude],{icon:uI})
+                .bindPopup('<strong>Tu ubicación</strong>').addTo(dfMap).openPopup();
+        },
+        ()=>{ dfInitMap(19.4326,-99.1332); }
+    );
+}
+
+function dfFiltrar(t) {
+    document.querySelectorAll('.map-filter').forEach(f=>f.classList.remove('active'));
+    document.getElementById('df-'+t).classList.add('active');
+    const show = t==='all'?dfAll: t==='farmacia'?dfFarm:dfCons;
+    const hide = dfAll.filter(m=>!show.includes(m));
+    if(!dfMap) return;
+    show.forEach(m=>m.addTo(dfMap));
+    hide.forEach(m=>dfMap.removeLayer(m));
+}
+
+// Auto-init when card is visible
+const dfObs = new IntersectionObserver(e=>{
+    if(e[0].isIntersecting && !dfMap) dfLocalizar();
+},{threshold:0.3});
+dfObs.observe(document.getElementById('dash-mapa'));
+
+// ── Repopular selects y textareas desde session data ─────
+document.addEventListener('DOMContentLoaded', function() {
+    // Textareas con data-val
+    document.querySelectorAll('textarea[data-val]').forEach(el => {
+        if (el.dataset.val) el.value = el.dataset.val;
+    });
+    // Selects - repopular desde valores Jinja
+    const selMap = {
+        'tipo_consulta': '{{ form_cita.get("tipo_consulta","") }}',
+        'genero':        '{{ form_cita.get("genero","") }}',
+        'estado_civil':  '{{ form_cita.get("estado_civil","") }}',
+        'tipo_sangre':   '{{ form_cita.get("tipo_sangre","") }}',
+        'seguro_medico': '{{ form_cita.get("seguro_medico","") }}',
+        'estado':        '{{ form_cita.get("estado","") }}',
+        'contacto_emergencia_parentesco': '{{ form_cita.get("contacto_emergencia_parentesco","") }}',
+    };
+    Object.entries(selMap).forEach(([id, val]) => {
+        if (!val) return;
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    });
+});
+</script>
+{% endblock %}
